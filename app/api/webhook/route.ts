@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { stripe } from "@/lib/stripe";
-import Stripe from "stripe";
 
 export async function POST(request: NextRequest) {
     const body = await request.text();
@@ -13,13 +11,26 @@ export async function POST(request: NextRequest) {
         );
     }
 
-    let event: Stripe.Event;
+    if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
+        return NextResponse.json(
+            { error: "Stripe is not configured" },
+            { status: 503 }
+        );
+    }
+
+    // Dynamic import to avoid crashing at build time when keys are missing
+    const Stripe = (await import("stripe")).default;
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+        typescript: true,
+    });
+
+    let event: import("stripe").Stripe.Event;
 
     try {
         event = stripe.webhooks.constructEvent(
             body,
             sig,
-            process.env.STRIPE_WEBHOOK_SECRET || ""
+            process.env.STRIPE_WEBHOOK_SECRET
         );
     } catch (err) {
         const message = err instanceof Error ? err.message : "Unknown error";
@@ -32,7 +43,8 @@ export async function POST(request: NextRequest) {
 
     switch (event.type) {
         case "checkout.session.completed": {
-            const session = event.data.object as Stripe.Checkout.Session;
+            const session = event.data
+                .object as import("stripe").Stripe.Checkout.Session;
             const courseSlug = session.metadata?.course_slug;
             const courseName = session.metadata?.course_name;
             const customerEmail = session.customer_details?.email;

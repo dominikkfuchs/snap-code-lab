@@ -1,36 +1,143 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ⚡ Snap Code Lab
 
-## Getting Started
+**Learn it. Build it. Ship it.**
 
-First, run the development server:
+Snap Code Lab is an online coding course platform built with Next.js 14, featuring Stripe integration for payments, Framer Motion animations, and a premium dark-mode design.
+
+![Snap Code Lab](https://snapcodelab.com)
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18+ 
+- npm
+- A Stripe account (for payment processing)
+
+### Installation
 
 ```bash
+# Clone the repository
+git clone <your-repo-url>
+cd snap-code-lab
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.local.example .env.local
+# Edit .env.local with your Stripe keys
+
+# Start the development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the site.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🔑 Stripe Configuration
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. Get Your API Keys
 
-## Learn More
+1. Go to [Stripe Dashboard](https://dashboard.stripe.com/test/apikeys)
+2. Copy your **Publishable key** and **Secret key**
+3. Add them to `.env.local`
 
-To learn more about Next.js, take a look at the following resources:
+### 2. Create Products & Prices
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+In the Stripe Dashboard:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Go to **Products** → **Add Product**
+2. Create products for each course:
+   - **HTML & CSS Mastery** — $49 (one-time)
+   - **Python for Beginners** — $59 (one-time)
+3. Copy each product's **Price ID** (starts with `price_`)
+4. Update the `stripePriceId` fields in `data/courses.ts`
 
-## Deploy on Vercel
+### 3. Set Up Webhooks
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Go to **Developers** → **Webhooks**
+2. Click **Add endpoint**
+3. URL: `https://yourdomain.com/api/webhook`
+4. Select event: `checkout.session.completed`
+5. Copy the **Webhook signing secret** to `.env.local`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 4. Local Webhook Testing
+
+```bash
+# Install Stripe CLI
+brew install stripe/stripe-cli/stripe
+
+# Login
+stripe login
+
+# Forward webhooks to local server
+stripe listen --forward-to localhost:3000/api/webhook
+```
+
+## 📁 Project Structure
+
+```
+├── app/
+│   ├── api/
+│   │   ├── checkout/route.ts    # Stripe checkout session creation
+│   │   └── webhook/route.ts     # Stripe webhook handler
+│   ├── courses/
+│   │   ├── page.tsx             # All courses listing
+│   │   └── [slug]/page.tsx      # Individual course detail
+│   ├── success/page.tsx         # Post-payment success page
+│   ├── cancel/page.tsx          # Cancelled checkout page
+│   ├── terms/page.tsx           # Terms of Service
+│   ├── privacy/page.tsx         # Privacy Policy (GDPR/CCPA)
+│   ├── refund/page.tsx          # Refund Policy
+│   ├── layout.tsx               # Root layout with fonts & metadata
+│   ├── globals.css              # Global styles & animations
+│   └── page.tsx                 # Landing page
+├── components/
+│   ├── Navbar.tsx               # Sticky navigation
+│   ├── Hero.tsx                 # Animated hero section
+│   ├── Features.tsx             # Why Snap Code Lab section
+│   ├── CourseCard.tsx            # Individual course card
+│   ├── CoursesSection.tsx       # Courses grid section
+│   ├── HowItWorks.tsx           # 3-step process section
+│   ├── Testimonials.tsx         # Student reviews
+│   ├── FAQ.tsx                  # Accordion FAQ
+│   ├── CourseDetail.tsx         # Full course detail component
+│   └── Footer.tsx               # Site footer
+├── data/
+│   └── courses.ts               # Course data with types
+├── lib/
+│   └── stripe.ts                # Stripe server client
+├── .env.local.example           # Environment variables template
+└── README.md
+```
+
+## 🎨 Tech Stack
+
+| Technology | Purpose |
+|---|---|
+| **Next.js 14** | App Router framework |
+| **TypeScript** | Type safety |
+| **Tailwind CSS** | Utility-first styling |
+| **Framer Motion** | Animations |
+| **Stripe** | Payment processing |
+| **Lucide React** | Icons |
+| **canvas-confetti** | Success page celebration |
+
+## 🔒 Stripe Compliance
+
+This project follows Stripe's integration requirements:
+
+- ✅ Uses **Stripe Hosted Checkout** (no custom card forms)
+- ✅ All Stripe secret keys are **server-side only**
+- ✅ **Refund policy** visible on every course page
+- ✅ **Trust badges** displayed near purchase buttons
+- ✅ **Business contact email** in footer and legal pages
+- ✅ **No card data** stored anywhere in the codebase
+
+## 📧 Support
+
+For questions or issues: [support@snapcodelab.com](mailto:support@snapcodelab.com)
+
+## 📄 License
+
+© 2025 Snap Code Lab. All rights reserved.
